@@ -5,7 +5,7 @@ metadata:
 spec:
   taskRef:
     name: deploy-kubectl
-  serviceAccount: tekton-deployment
+  serviceAccount: tekton-deploy
   inputs:
     resources:
       - name: workspacedeploy
