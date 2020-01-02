@@ -66,7 +66,7 @@ You need to change the `PipelineResource` where the image to be pushed is specif
 ```bash
 $ export MY_DOCKER_IMG=<your_registry>/<your_image>:latest
 $ cat petclinic-resources.yaml | \
-sed "s%eu.gcr.io\/emea-sa-demo\/petclinic-kaniko\:latest%$MY_DOCKER_IMG%g" | \
+sed "s%gcr.io\/emea-sa-demo\/petclinic-kaniko\:latest%$MY_DOCKER_IMG%g" | \
 tee petclinic-resources.yaml
 ```
 

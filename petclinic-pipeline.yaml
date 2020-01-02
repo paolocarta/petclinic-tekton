@@ -8,7 +8,7 @@ spec:
       - name: workspace
         type: git
     params:
-      - name: workingDir
+      - name: directory
         description: Working directory parameter
         default: /workspace/workspace
   outputs:
@@ -18,7 +18,7 @@ spec:
   steps:
     - name: maven-build
       image: gcr.io/cloud-builders/mvn:3.5.0-jdk-8
-      workingDir: ${inputs.params.workingDir}
+      workingDir: ${inputs.params.directory}
       command: ["mvn"]
       args:
         - "clean"
@@ -42,25 +42,51 @@ spec:
         type: git
         targetPath: petclinic
     params:
-      - name: workingDir
+      - name: directory
         description: Working directory parameter
         default: /workspace/petclinic
       - name: DockerFilePath
-        decription: Path to DockerFile
+        description: Path to DockerFile
         default: /workspace/petclinic/Dockerfile
   outputs:
     resources:
       - name: dockerImage
         type: image
   steps:
+    # - name: kaniko-build-ls
+    #   image: gcr.io/kaniko-project/executor:latest
+    #   command:
+    #     - "ls"
+    #   env:
+    #     - name: GOOGLE_APPLICATION_CREDENTIALS
+    #       value: /secret/.dockerconfigjson
+    #   volumeMounts:
+    #     - name: kaniko-secret
+    #       mountPath: /secret
+    # - name: kaniko-build-echo
+    #   image: gcr.io/kaniko-project/executor:latest
+    #   command:
+    #     - "echo $GOOGLE_APPLICATION_CREDENTIALS"
+    #   env:
+    #     - name: GOOGLE_APPLICATION_CREDENTIALS
+    #       value: /secret/.dockerconfigjson
+    #   volumeMounts:
+    #     - name: kaniko-secret
+    #       mountPath: /secret
     - name: kaniko-build
       image: gcr.io/kaniko-project/executor:latest
       command:
         - /kaniko/executor
       args:
         - "--dockerfile=${inputs.params.DockerFilePath}"
-        - "--context=${inputs.params.workingDir}"
+        - "--context=${inputs.params.directory}"
         - "--destination=${outputs.resources.dockerImage.url}"
+      # env:
+      #   - name: GOOGLE_APPLICATION_CREDENTIALS
+      #     valueFrom:
+      #       secretKeyRef:
+      #         name: kaniko-secret-cfg
+      #         key: .dockerconfigjson
       env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/kaniko-secret.json
@@ -82,7 +108,7 @@ spec:
       - name: workspacedeploy
         type: git
     params:
-      - name: workingDir
+      - name: directory
         description: Working directory parameter
         default: /workspace/workspacedeploy
       - name: deployFile
@@ -95,7 +121,7 @@ spec:
   steps:
     - name: kubectl-clean
       image: gcr.io/cloud-builders/kubectl:latest
-      workingDir: ${inputs.params.workingDir}
+      workingDir: ${inputs.params.directory}
       command: ["/bin/bash"]
       args:
         - -c
@@ -105,7 +131,7 @@ spec:
         - fi
     - name: kubectl-deploy
       image: gcr.io/cloud-builders/kubectl:latest
-      workingDir: ${inputs.params.workingDir}
+      workingDir: ${inputs.params.directory}
       command: ["kubectl"]
       args:
         - apply
